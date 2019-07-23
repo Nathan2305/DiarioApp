@@ -1,25 +1,27 @@
 package com.example.diarioapp;
 
 import android.content.Context;
-import android.content.res.Resources;
-import android.support.constraint.ConstraintLayout;
+import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
-import android.util.AttributeSet;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 public class Note_Activity extends AppCompatActivity {
-    FloatingActionButton fab, fab_save_notes;
+    FloatingActionButton fab;
     LinearLayout linearLayout;
     ArrayList<Note> lisNote;
     ArrayList<EditText> listEdt;
@@ -32,7 +34,6 @@ public class Note_Activity extends AppCompatActivity {
         linearLayout = findViewById(R.id.container_ll);
         listEdt = new ArrayList<>();
         fab = findViewById(R.id.fab_add);
-        fab_save_notes = findViewById(R.id.fab_save_notes);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -51,19 +52,54 @@ public class Note_Activity extends AppCompatActivity {
                 linearLayout.addView(constraintLayout);
             }
         });
-        fab_save_notes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.save_note, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.save:
                 for (int k = 0; k < listEdt.size(); k++) {
                     EditText editText = listEdt.get(k);
-                    String nota = editText.getText().toString();
-                    if (!nota.isEmpty()) {
+                    String notaTxt = editText.getText().toString();
+                    if (!notaTxt.isEmpty()) {
                         Note note = new Note();
-                        note.setTitle(nota);
-                        lisNote.add(note);
+                        note.setText(notaTxt);
+                        Date date = new Date();
+                        String strDateFormat = "hh:mm:ss a";
+                        DateFormat dateFormat = new SimpleDateFormat(strDateFormat);
+                        String formattedDate= dateFormat.format(date);
+                        note.setDateText(formattedDate);
+                        insertNoteDB(note);
+                        //lisNote.add(note);
                     }
                 }
-            }
-        });
+        }
+        return true;
+    }
+
+    private void insertNoteDB(Note note) {
+        new TaskAddMovie().execute(note);
+    }
+
+    private class TaskAddMovie extends AsyncTask<Note, Void, Void> {
+        @Override
+        protected Void doInBackground(Note... my_note) {
+            NoteDataBase.getInstance(getApplicationContext())
+                    .getnoteDao().insertNotes(my_note);
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            Toast.makeText(getApplicationContext(), "Se guardaron notas", Toast.LENGTH_LONG).show();
+        }
     }
 }

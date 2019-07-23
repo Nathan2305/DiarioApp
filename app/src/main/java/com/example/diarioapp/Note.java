@@ -1,22 +1,44 @@
 package com.example.diarioapp;
 
+import android.arch.persistence.room.ColumnInfo;
+import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.PrimaryKey;
+import android.support.annotation.NonNull;
+
+@Entity
 public class Note {
-    private String date_note;
-    private String title;
+    @PrimaryKey
+    @NonNull
+    @ColumnInfo(name = "dateText")
+    private String dateText;
 
-    public String getDate_note() {
-        return date_note;
+    @ColumnInfo(name = "text")
+    private String text;
+
+    @ColumnInfo(name="titleNote")
+    private String titleNote;
+
+    public String getDateText() {
+        return dateText;
     }
 
-    public void setDate_note(String date_note) {
-        this.date_note = date_note;
+    public void setDateText(String dateText) {
+        this.dateText = dateText;
     }
 
-    public String getTitle() {
-        return title;
+    public String getText() {
+        return text;
     }
 
-    public void setTitle(String title) {
-        this.title = title;
+    public void setText(String text) {
+        this.text = text;
+    }
+
+    public String getTitleNote() {
+        return titleNote;
+    }
+
+    public void setTitleNote(String titleNote) {
+        this.titleNote = titleNote;
     }
 }
