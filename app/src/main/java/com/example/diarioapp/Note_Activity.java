@@ -75,22 +75,31 @@ public class Note_Activity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.save:
-                for (int k = 0; k < listEdt.size(); k++) {
+                Date date = new Date();
+                DateFormat dateFormat = DateFormat.getDateTimeInstance();
+                String formattedDate = dateFormat.format(date);
+                TitleNote titleNote_obj=new TitleNote();
+                titleNote_obj.setId_title_note("title_"+formattedDate);
+                titleNote_obj.setTitle(titleNote.getText().toString());
+                titleNote_obj.setDateTitlenote(formattedDate);
+                insertTtileDB(titleNote_obj);
+
+               /* for (int k = 0; k < listEdt.size(); k++) {
                     EditText editText = listEdt.get(k);
                     String notaTxt = editText.getText().toString();
                     if (!notaTxt.isEmpty()) {
-                        Note note = new Note();
+
+                        *//*Note note = new Note();
                         Date date = new Date();
-                        String strDateFormat = "hh:mm:ss a";
-                        DateFormat dateFormat = new SimpleDateFormat(strDateFormat);
+                        DateFormat dateFormat = DateFormat.getDateTimeInstance();
                         String formattedDate = dateFormat.format(date);
                         note.setText(notaTxt);
                         note.setPosition(k);
                         note.setDateText(formattedDate);
-                        note.setTitleNote(titleNote.getText().toString());
-                        insertNoteDB(note);
+                        note.setTitleNote(titleNote.getText().toString());*//*
+                        //insertNoteDB(note);
                     }
-                }
+                }*/
         }
         return true;
     }
@@ -115,6 +124,29 @@ public class Note_Activity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Toast.makeText(getApplicationContext(), "Se guardaron notas", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void insertTtileDB(TitleNote titleNote) {
+        new TaskAddTitle().execute(titleNote);
+    }
+
+    private class TaskAddTitle extends AsyncTask<TitleNote, Void, Void> {
+        @Override
+        protected Void doInBackground(TitleNote... my_title) {
+            try {
+                TitleNoteDataBase.getInstance(getApplicationContext())
+                        .getTitleNoteDao().insertTitleNote(my_title);
+            } catch (Exception e) {
+                System.out.println("Error guardando Título " + e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            Toast.makeText(getApplicationContext(), "Se guardó el título", Toast.LENGTH_SHORT).show();
         }
     }
 }

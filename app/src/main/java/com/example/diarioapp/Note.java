@@ -9,14 +9,14 @@ import android.support.annotation.NonNull;
 public class Note {
     @PrimaryKey
     @NonNull
+    @ColumnInfo(name = "id_note")
+    private String id_note;
+
     @ColumnInfo(name = "dateText")
     private String dateText;
 
     @ColumnInfo(name = "text")
     private String text;
-
-    @ColumnInfo(name="titleNote")
-    private String titleNote;
 
     @ColumnInfo(name="position")
     private int position;
@@ -37,8 +37,13 @@ public class Note {
         this.text = text;
     }
 
-    public String getTitleNote() {
-        return titleNote;
+    @NonNull
+    public String getId_note() {
+        return id_note;
+    }
+
+    public void setId_note(@NonNull String id_note) {
+        this.id_note = id_note;
     }
 
     public int getPosition() {
@@ -49,8 +54,5 @@ public class Note {
         this.position = position;
     }
 
-    public void setTitleNote(String titleNote) {
-        this.titleNote = titleNote;
-    }
 
 }

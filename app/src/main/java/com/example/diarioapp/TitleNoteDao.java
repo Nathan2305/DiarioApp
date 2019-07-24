@@ -7,12 +7,10 @@ import android.arch.persistence.room.Query;
 import java.util.List;
 
 @Dao
-public interface NoteDao {
-    @Query("SELECT *FROM Note")
-    List<Note> getAll();
+public interface TitleNoteDao {
+    @Query("SELECT *FROM TitleNote")
+    List<TitleNote> getAll();
 
     @Insert
-    void insertNotes(Note... notes);
-
-
+    void insertTitleNote(TitleNote... titleNote);
 }

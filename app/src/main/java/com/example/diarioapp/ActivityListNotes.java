@@ -24,7 +24,7 @@ public class ActivityListNotes extends AppCompatActivity {
         layoutManager=new LinearLayoutManager(getApplicationContext());
 
         fab = findViewById(R.id.add_note);
-        new TaskGetNotes().execute();
+        new TaskGetTitleNotes().execute();
         setListeners();
 
     }
@@ -39,17 +39,17 @@ public class ActivityListNotes extends AppCompatActivity {
         });
     }
 
-    private class TaskGetNotes extends AsyncTask<Void, Void, List<String>> {
+    private class TaskGetTitleNotes extends AsyncTask<Void, Void, List<TitleNote>> {
 
         @Override
-        protected List<String> doInBackground(Void... voids) {
-            return NoteDataBase.getInstance(getApplicationContext()).getnoteDao().getTitles();
+        protected List<TitleNote> doInBackground(Void... voids) {
+            return TitleNoteDataBase.getInstance(getApplicationContext()).getTitleNoteDao().getAll();
         }
 
         @Override
-        protected void onPostExecute(List<String> notes) {
-            super.onPostExecute(notes);
-            adapter=new CustomAdapterforNote(getApplicationContext(),notes);
+        protected void onPostExecute(List<TitleNote> titleNotes) {
+            super.onPostExecute(titleNotes);
+            adapter=new CustomAdapterforNote(getApplicationContext(),titleNotes);
             recycler_notes.setLayoutManager(layoutManager);
             recycler_notes.setAdapter(adapter);
 
