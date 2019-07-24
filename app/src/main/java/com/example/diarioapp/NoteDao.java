@@ -13,4 +13,7 @@ public interface NoteDao {
 
     @Insert
     void insertNotes(Note... notes);
+
+    @Query("SELECT distinct(titleNote) from Note")
+    List<String> getTitles();
 }

@@ -1,6 +1,7 @@
 package com.example.diarioapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
@@ -13,23 +14,32 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Note_Activity extends AppCompatActivity {
     FloatingActionButton fab;
     LinearLayout linearLayout;
     ArrayList<Note> lisNote;
     ArrayList<EditText> listEdt;
+    TextView titleNote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note);
+        titleNote = findViewById(R.id.titleNote);
+        Intent intent = getIntent();
+        String title_get = intent.getExtras().getString("title_note");
+        if (!title_get.isEmpty()) {
+            titleNote.setText(title_get);
+        }
         lisNote = new ArrayList<>();
         linearLayout = findViewById(R.id.container_ll);
         listEdt = new ArrayList<>();
@@ -70,14 +80,15 @@ public class Note_Activity extends AppCompatActivity {
                     String notaTxt = editText.getText().toString();
                     if (!notaTxt.isEmpty()) {
                         Note note = new Note();
-                        note.setText(notaTxt);
                         Date date = new Date();
                         String strDateFormat = "hh:mm:ss a";
                         DateFormat dateFormat = new SimpleDateFormat(strDateFormat);
-                        String formattedDate= dateFormat.format(date);
+                        String formattedDate = dateFormat.format(date);
+                        note.setText(notaTxt);
+                        note.setPosition(k);
                         note.setDateText(formattedDate);
+                        note.setTitleNote(titleNote.getText().toString());
                         insertNoteDB(note);
-                        //lisNote.add(note);
                     }
                 }
         }
@@ -85,21 +96,25 @@ public class Note_Activity extends AppCompatActivity {
     }
 
     private void insertNoteDB(Note note) {
-        new TaskAddMovie().execute(note);
+        new TaskAddNote().execute(note);
     }
 
-    private class TaskAddMovie extends AsyncTask<Note, Void, Void> {
+    private class TaskAddNote extends AsyncTask<Note, Void, Void> {
         @Override
         protected Void doInBackground(Note... my_note) {
-            NoteDataBase.getInstance(getApplicationContext())
-                    .getnoteDao().insertNotes(my_note);
+            try {
+                NoteDataBase.getInstance(getApplicationContext())
+                        .getnoteDao().insertNotes(my_note);
+            } catch (Exception e) {
+                System.out.println(e.getMessage());
+            }
             return null;
         }
 
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            Toast.makeText(getApplicationContext(), "Se guardaron notas", Toast.LENGTH_LONG).show();
+            Toast.makeText(getApplicationContext(), "Se guardaron notas", Toast.LENGTH_SHORT).show();
         }
     }
 }

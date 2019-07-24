@@ -18,6 +18,9 @@ public class Note {
     @ColumnInfo(name="titleNote")
     private String titleNote;
 
+    @ColumnInfo(name="position")
+    private int position;
+
     public String getDateText() {
         return dateText;
     }
@@ -38,7 +41,16 @@ public class Note {
         return titleNote;
     }
 
+    public int getPosition() {
+        return position;
+    }
+
+    public void setPosition(int position) {
+        this.position = position;
+    }
+
     public void setTitleNote(String titleNote) {
         this.titleNote = titleNote;
     }
+
 }
