@@ -9,15 +9,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".TitleNoteActivity"></activity>
-        <activity android:name=".Note_Activity">
+        <activity android:name=".model.view.Activity_savedParagraph"></activity>
+        <activity android:name=".model.view.TitleNoteActivity" />
+        <activity android:name=".model.view.Note_Activity">
             <intent-filter>
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".ActivityListNotes">
+        <activity android:name=".model.view.ActivityListNotes">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

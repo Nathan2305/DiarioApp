@@ -1,19 +1,18 @@
-package com.example.diarioapp;
+package com.example.diarioapp.entities.pojo;
 
 import android.arch.persistence.room.ColumnInfo;
 import android.arch.persistence.room.Entity;
+import android.arch.persistence.room.ForeignKey;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
 @Entity
-public class Note {
-    @PrimaryKey
-    @NonNull
-    @ColumnInfo(name = "id_note")
-    private String id_note;
 
-    @ColumnInfo(name = "dateText")
-    private String dateText;
+public class Paragraph {
+    @PrimaryKey(autoGenerate = true)
+    @NonNull
+    @ColumnInfo(name = "paragraphId")
+    private long paragraphId;
 
     @ColumnInfo(name = "text")
     private String text;
@@ -21,12 +20,16 @@ public class Note {
     @ColumnInfo(name="position")
     private int position;
 
-    public String getDateText() {
-        return dateText;
+    @ColumnInfo(name="noteId")
+    private long noteId;
+
+
+    public long getParagraphId() {
+        return paragraphId;
     }
 
-    public void setDateText(String dateText) {
-        this.dateText = dateText;
+    public void setParagraphId(long paragraphId) {
+        this.paragraphId = paragraphId;
     }
 
     public String getText() {
@@ -37,15 +40,6 @@ public class Note {
         this.text = text;
     }
 
-    @NonNull
-    public String getId_note() {
-        return id_note;
-    }
-
-    public void setId_note(@NonNull String id_note) {
-        this.id_note = id_note;
-    }
-
     public int getPosition() {
         return position;
     }
@@ -54,5 +48,11 @@ public class Note {
         this.position = position;
     }
 
+    public long getNoteId() {
+        return noteId;
+    }
 
+    public void setNoteId(long noteId) {
+        this.noteId = noteId;
+    }
 }

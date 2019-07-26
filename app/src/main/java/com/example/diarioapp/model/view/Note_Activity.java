@@ -1,4 +1,4 @@
-package com.example.diarioapp;
+package com.example.diarioapp.model.view;
 
 import android.content.Context;
 import android.content.Intent;
@@ -17,18 +17,21 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.diarioapp.R;
+import com.example.diarioapp.entities.pojo.Note;
+import com.example.diarioapp.entities.pojo.Paragraph;
+import com.example.diarioapp.model.db.AppDataBase;
+
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class Note_Activity extends AppCompatActivity {
     FloatingActionButton fab;
     LinearLayout linearLayout;
-    ArrayList<Note> lisNote;
     ArrayList<EditText> listEdt;
     TextView titleNote;
+    Note auxNote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,7 +43,6 @@ public class Note_Activity extends AppCompatActivity {
         if (!title_get.isEmpty()) {
             titleNote.setText(title_get);
         }
-        lisNote = new ArrayList<>();
         linearLayout = findViewById(R.id.container_ll);
         listEdt = new ArrayList<>();
         fab = findViewById(R.id.fab_add);
@@ -75,47 +77,40 @@ public class Note_Activity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.save:
-                Date date = new Date();
-                DateFormat dateFormat = DateFormat.getDateTimeInstance();
-                String formattedDate = dateFormat.format(date);
-                TitleNote titleNote_obj=new TitleNote();
-                titleNote_obj.setId_title_note("title_"+formattedDate);
-                titleNote_obj.setTitle(titleNote.getText().toString());
-                titleNote_obj.setDateTitlenote(formattedDate);
-                insertTtileDB(titleNote_obj);
-
-               /* for (int k = 0; k < listEdt.size(); k++) {
-                    EditText editText = listEdt.get(k);
-                    String notaTxt = editText.getText().toString();
-                    if (!notaTxt.isEmpty()) {
-
-                        *//*Note note = new Note();
-                        Date date = new Date();
-                        DateFormat dateFormat = DateFormat.getDateTimeInstance();
-                        String formattedDate = dateFormat.format(date);
-                        note.setText(notaTxt);
-                        note.setPosition(k);
-                        note.setDateText(formattedDate);
-                        note.setTitleNote(titleNote.getText().toString());*//*
-                        //insertNoteDB(note);
-                    }
-                }*/
+                insertNoteDB();
         }
         return true;
     }
 
-    private void insertNoteDB(Note note) {
-        new TaskAddNote().execute(note);
+    private void insertNoteDB() {
+        new TaskAddNote().execute();
     }
 
-    private class TaskAddNote extends AsyncTask<Note, Void, Void> {
+    private class TaskAddNote extends AsyncTask<Void, Void, Void> {
         @Override
-        protected Void doInBackground(Note... my_note) {
+        protected Void doInBackground(Void... voids) {
             try {
-                NoteDataBase.getInstance(getApplicationContext())
-                        .getnoteDao().insertNotes(my_note);
+                Date date = new Date();
+                DateFormat dateFormat = DateFormat.getDateTimeInstance();
+                String formattedDate = dateFormat.format(date);
+                Note note = new Note();
+                note.setTitle(titleNote.getText().toString());
+                note.setDateTitlenote(formattedDate);
+                long resul=AppDataBase.getInstanceNoteBD(getApplicationContext()).getNoteDao().insertNote(note);
+
+                for (int k = 0; k < listEdt.size(); k++) {
+                    EditText editText = listEdt.get(k);
+                    String paragraphTxt = editText.getText().toString();
+                    if (!paragraphTxt.isEmpty()) {
+                        Paragraph paragraph = new Paragraph();
+                        paragraph.setText(paragraphTxt);
+                        paragraph.setPosition(k);
+                        paragraph.setNoteId(resul);
+                        insertParagraphDB(paragraph);
+                    }
+                }
             } catch (Exception e) {
-                System.out.println(e.getMessage());
+                System.out.println("Excepcion - Note " + e.getMessage() + " - " + e.getCause());
             }
             return null;
         }
@@ -126,27 +121,23 @@ public class Note_Activity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), "Se guardaron notas", Toast.LENGTH_SHORT).show();
         }
     }
-
-    private void insertTtileDB(TitleNote titleNote) {
-        new TaskAddTitle().execute(titleNote);
+    private void insertParagraphDB(Paragraph paragraph) {
+        new TaskAddParagraph().execute(paragraph);
     }
-
-    private class TaskAddTitle extends AsyncTask<TitleNote, Void, Void> {
+    private class TaskAddParagraph extends AsyncTask<Paragraph, Void, Void> {
         @Override
-        protected Void doInBackground(TitleNote... my_title) {
+        protected Void doInBackground(Paragraph... paragraphs) {
             try {
-                TitleNoteDataBase.getInstance(getApplicationContext())
-                        .getTitleNoteDao().insertTitleNote(my_title);
+                AppDataBase.getInstanceParagraphBD(getApplicationContext()).getParagraphDao().insertParagraph(paragraphs);
             } catch (Exception e) {
-                System.out.println("Error guardando Título " + e.getMessage());
+                System.out.println("Excepcion - Paragraph " + e.getMessage() + " - " + e.getCause());
             }
             return null;
         }
-
         @Override
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
-            Toast.makeText(getApplicationContext(), "Se guardó el título", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Se guardaron titulos con Notas", Toast.LENGTH_SHORT).show();
         }
     }
 }
