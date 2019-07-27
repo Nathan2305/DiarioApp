@@ -57,7 +57,7 @@ public class Note_Activity extends AppCompatActivity {
                 editText.setLayoutParams(new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT));
-                editText.setPadding(40, 40, 40, 40);
+                editText.setPadding(35, 35, 35, 35);
                 editText.requestFocus();
                 listEdt.add(editText);
                 cardView.addView(editText);
@@ -109,6 +109,10 @@ public class Note_Activity extends AppCompatActivity {
                         insertParagraphDB(paragraph);
                     }
                 }
+                Intent i1 = new Intent(getApplicationContext(), ActivityListNotes.class);
+                i1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                i1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // <= USE THIS
+                startActivity(i1);
             } catch (Exception e) {
                 System.out.println("Excepcion - Note " + e.getMessage() + " - " + e.getCause());
             }

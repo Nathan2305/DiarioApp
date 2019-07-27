@@ -17,5 +17,8 @@ public interface ParagraphDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     void insertParagraph(Paragraph... paragraph);
 
+    @Query("SELECT *FROM Paragraph WHERE Paragraph.noteId= :noteId")
+    public List<Paragraph> getListParagraphPerNote(long noteId);
+
 
 }

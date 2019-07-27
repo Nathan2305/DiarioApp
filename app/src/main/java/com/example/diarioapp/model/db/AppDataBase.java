@@ -5,6 +5,7 @@ import android.arch.persistence.room.Room;
 import android.arch.persistence.room.RoomDatabase;
 import android.content.Context;
 
+import com.example.diarioapp.dao.NoteAndParagraphDao;
 import com.example.diarioapp.dao.NoteDao;
 import com.example.diarioapp.dao.ParagraphDao;
 import com.example.diarioapp.entities.pojo.Paragraph;
@@ -33,5 +34,4 @@ public abstract class AppDataBase extends RoomDatabase {
 
     public abstract ParagraphDao getParagraphDao();
     public abstract NoteDao getNoteDao();
-
 }

@@ -21,7 +21,7 @@ import java.util.List;
 public class ActivityListNotes extends AppCompatActivity {
     FloatingActionButton fab;
     RecyclerView recycler_notes;
-   /// RecyclerView.Adapter adapter;
+    /// RecyclerView.Adapter adapter;
     RecyclerView.LayoutManager layoutManager;
 
     @Override
@@ -54,7 +54,7 @@ public class ActivityListNotes extends AppCompatActivity {
         }
 
         @Override
-        protected void onPostExecute(List<Note> notes) {
+        protected void onPostExecute(final List<Note> notes) {
             super.onPostExecute(notes);
             if (!notes.isEmpty()) {
                 RecyclerView.Adapter adapter = new CustomAdapterforNote(getApplicationContext(), notes);
@@ -64,7 +64,9 @@ public class ActivityListNotes extends AppCompatActivity {
                 ((CustomAdapterforNote) adapter).setOnItemClickListener(new CustomAdapterforNote.OnItemClickListener() {
                     @Override
                     public void onItemClick(int position) {
-                        Util.showToast(getApplicationContext(),"Presionaste Posición "+ position);
+                        Intent intent = new Intent(getApplicationContext(), Activity_savedParagraph.class);
+                        intent.putExtra("noteId",notes.get(position).getNoteId());
+                        startActivity(intent);
                     }
 
                     @Override

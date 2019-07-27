@@ -40,17 +40,15 @@
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/fab_add"
-        android:layout_width="46dp"
-        android:layout_height="46dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:backgroundTint="@color/celeste2"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/bground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.977"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/scroll"
-        app:layout_constraintVertical_bias="1.0"
-        tools:ignore="MissingConstraints"/>
+        tools:ignore="MissingConstraints" />
 
 </android.support.constraint.ConstraintLayout>

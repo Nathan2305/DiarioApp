@@ -11,6 +11,7 @@
         android:id="@+id/cardView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:backgroundTint="@color/naranja"
         app:cardCornerRadius="20dp"
         android:elevation="10dp"
         app:cardPreventCornerOverlap="true"
