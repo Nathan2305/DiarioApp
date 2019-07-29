@@ -29,7 +29,7 @@
             android:layout_gravity="center_vertical"
             android:layout_marginTop="5dp" />
 
-        <TextView
+        <!--<TextView
             android:id="@+id/paragraph"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -39,7 +39,7 @@
             android:paddingRight="5dp"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="18sp"
-            tools:ignore="MissingConstraints" />
+            tools:ignore="MissingConstraints" />-->
     </LinearLayout>
 
     <ImageView
@@ -47,7 +47,7 @@
         android:layout_height="40dp"
         android:layout_gravity="center_vertical"
         android:layout_marginTop="5dp"
-        android:src="@drawable/chinche"
+        android:src="@drawable/ic_chinche"
         tools:ignore="MissingConstraints" />
 
 </android.support.constraint.ConstraintLayout>

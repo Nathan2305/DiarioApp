@@ -13,7 +13,7 @@ import com.example.diarioapp.entities.pojo.Note;
 
 import java.util.List;
 
-public class CustomAdapterforNote extends RecyclerView.Adapter<CustomAdapterforNote.ViewHolder> {
+public class CustomAdapterforNote extends RecyclerView.Adapter<CustomAdapterforNote.ViewHolder> implements View.OnLongClickListener {
     Context context;
     List<Note> list;
     private OnItemClickListener mListener;
@@ -26,7 +26,7 @@ public class CustomAdapterforNote extends RecyclerView.Adapter<CustomAdapterforN
     @Override
     public CustomAdapterforNote.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(context).inflate(R.layout.title_note_card, viewGroup, false);
-        return new ViewHolder(view,mListener);
+        return new ViewHolder(view, mListener);
     }
 
     @Override
@@ -40,13 +40,19 @@ public class CustomAdapterforNote extends RecyclerView.Adapter<CustomAdapterforN
         return list.size();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
-        TextView title_note,title_date;
+    @Override
+    public boolean onLongClick(View v) {
+        Util.showToast(context, "Se mantuvo presionado mucho tiempo");
+        return false;
+    }
 
-        public ViewHolder(@NonNull View itemView,final OnItemClickListener listener) {
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        TextView title_note, title_date;
+
+        public ViewHolder(@NonNull View itemView, final OnItemClickListener listener) {
             super(itemView);
-            title_note=itemView.findViewById(R.id.title_note);
-            title_date=itemView.findViewById(R.id.title_date);
+            title_note = itemView.findViewById(R.id.title_note);
+            title_date = itemView.findViewById(R.id.title_date);
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -58,12 +64,31 @@ public class CustomAdapterforNote extends RecyclerView.Adapter<CustomAdapterforN
                     }
                 }
             });
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    if (listener != null) {
+                        int position = getAdapterPosition();
+                        listener.onDeleteItemClick(position);
+                        if (position != -1 && position < list.size()) {
+                            //listener.onDeleteItemClick(position);
+                           /* list.remove(position);
+                            notifyItemChanged(position);
+                            notifyItemRangeChanged(position,getItemCount());*/
+                        }
+
+                    }
+                    return false;
+                }
+            });
         }
     }
+
     public interface OnItemClickListener {
         void onItemClick(int position);
-        void onDeleteClick(int position);
+        void onDeleteItemClick(int position);
     }
+
     public void setOnItemClickListener(OnItemClickListener listener) {
         mListener = listener;
     }

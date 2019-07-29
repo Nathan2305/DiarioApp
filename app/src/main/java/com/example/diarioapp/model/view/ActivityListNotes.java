@@ -9,20 +9,19 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
-
 import com.example.diarioapp.utils.CustomAdapterforNote;
 import com.example.diarioapp.R;
 import com.example.diarioapp.entities.pojo.Note;
 import com.example.diarioapp.model.db.AppDataBase;
-import com.example.diarioapp.utils.Util;
 
 import java.util.List;
 
 public class ActivityListNotes extends AppCompatActivity {
     FloatingActionButton fab;
     RecyclerView recycler_notes;
-    /// RecyclerView.Adapter adapter;
+    RecyclerView.Adapter adapter;
     RecyclerView.LayoutManager layoutManager;
+    List<Note> listNotes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +32,6 @@ public class ActivityListNotes extends AppCompatActivity {
         fab = findViewById(R.id.add_note);
         new TaskGetNotes().execute();
         setListeners();
-
     }
 
     private void setListeners() {
@@ -44,7 +42,9 @@ public class ActivityListNotes extends AppCompatActivity {
                 startActivity(i);
             }
         });
+
     }
+
 
     private class TaskGetNotes extends AsyncTask<Void, Void, List<Note>> {
 
@@ -57,7 +57,8 @@ public class ActivityListNotes extends AppCompatActivity {
         protected void onPostExecute(final List<Note> notes) {
             super.onPostExecute(notes);
             if (!notes.isEmpty()) {
-                RecyclerView.Adapter adapter = new CustomAdapterforNote(getApplicationContext(), notes);
+                listNotes = notes;
+                adapter = new CustomAdapterforNote(getApplicationContext(), listNotes);
                 recycler_notes.setLayoutManager(layoutManager);
                 recycler_notes.setAdapter(adapter);
                 recycler_notes.hasFixedSize();
@@ -65,23 +66,18 @@ public class ActivityListNotes extends AppCompatActivity {
                     @Override
                     public void onItemClick(int position) {
                         Intent intent = new Intent(getApplicationContext(), Activity_savedParagraph.class);
-                        intent.putExtra("noteId",notes.get(position).getNoteId());
+                        intent.putExtra("noteId", listNotes.get(position).getNoteId());
                         startActivity(intent);
                     }
 
                     @Override
-                    public void onDeleteClick(int position) {
-
+                    public void onDeleteItemClick(int position) {
+                        /*listNotes.remove(position);
+                        adapter.notifyItemRemoved(position);
+                        adapter.notifyItemRangeChanged(position, listNotes.size());*/
                     }
                 });
-
             }
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
     }
 }

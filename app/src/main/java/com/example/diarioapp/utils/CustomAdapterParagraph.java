@@ -26,7 +26,7 @@ public class CustomAdapterParagraph extends RecyclerView.Adapter<CustomAdapterPa
     @NonNull
     @Override
     public CustomAdapterParagraph.ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view= LayoutInflater.from(this.context).inflate(R.layout.each_paragraph,null);
+        View view= LayoutInflater.from(this.context).inflate(R.layout.each_paragraph_saved,null);
         return new ViewHolder(view);
     }
 
