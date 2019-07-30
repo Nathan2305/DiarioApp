@@ -66,6 +66,7 @@ public class ActivityListNotes extends AppCompatActivity {
                     @Override
                     public void onItemClick(int position) {
                         Intent intent = new Intent(getApplicationContext(), Activity_savedParagraph.class);
+                        intent.putExtra("noteTitle", listNotes.get(position).getTitle());
                         intent.putExtra("noteId", listNotes.get(position).getNoteId());
                         startActivity(intent);
                     }
