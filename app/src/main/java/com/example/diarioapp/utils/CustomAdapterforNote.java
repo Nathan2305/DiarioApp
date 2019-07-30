@@ -1,7 +1,10 @@
 package com.example.diarioapp.utils;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.os.Build;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -48,11 +51,16 @@ public class CustomAdapterforNote extends RecyclerView.Adapter<CustomAdapterforN
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         TextView title_note, title_date;
+        CardView cardView;
 
         public ViewHolder(@NonNull View itemView, final OnItemClickListener listener) {
             super(itemView);
+            cardView=itemView.findViewById(R.id.cardView);
             title_note = itemView.findViewById(R.id.title_note);
             title_date = itemView.findViewById(R.id.title_date);
+            if (Build.VERSION.SDK_INT<Build.VERSION_CODES.LOLLIPOP){
+                cardView.setBackgroundColor(context.getResources().getColor(R.color.naranja));
+            }
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -71,10 +79,7 @@ public class CustomAdapterforNote extends RecyclerView.Adapter<CustomAdapterforN
                         int position = getAdapterPosition();
                         listener.onDeleteItemClick(position);
                         if (position != -1 && position < list.size()) {
-                            //listener.onDeleteItemClick(position);
-                           /* list.remove(position);
-                            notifyItemChanged(position);
-                            notifyItemRangeChanged(position,getItemCount());*/
+
                         }
 
                     }
@@ -86,6 +91,7 @@ public class CustomAdapterforNote extends RecyclerView.Adapter<CustomAdapterforN
 
     public interface OnItemClickListener {
         void onItemClick(int position);
+
         void onDeleteItemClick(int position);
     }
 

@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp"
     tools:context=".model.view.ActivityListNotes">
 
     <android.support.design.widget.FloatingActionButton
@@ -21,15 +20,9 @@
         tools:ignore="MissingConstraints" />
 
     <android.support.v7.widget.RecyclerView
+        android:padding="10dp"
         android:id="@+id/recycler_notes"
         android:layout_width="match_parent"
         android:layout_height="match_parent"></android.support.v7.widget.RecyclerView>
-
-
-    <!-- <android.support.design.widget.FloatingActionButton
-         android:id="@+id/add_note"
-         android:layout_width="wrap_content"
-         android:layout_height="wrap_content"
-         tools:ignore="MissingConstraints" />-->
 
 </android.support.constraint.ConstraintLayout>

@@ -1,11 +1,22 @@
 package com.example.diarioapp.model.view;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Environment;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,7 +26,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -24,18 +37,25 @@ import com.example.diarioapp.R;
 import com.example.diarioapp.entities.pojo.Note;
 import com.example.diarioapp.entities.pojo.Paragraph;
 import com.example.diarioapp.model.db.AppDataBase;
+import com.example.diarioapp.utils.Util;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class Note_Activity extends AppCompatActivity {
-    FloatingActionButton fab_add, fab_text, fab_adio, fab_img;
+    FloatingActionButton fab_add, fab_text, fab_audio, fab_img;
     LinearLayout linearLayout;
     ArrayList<EditText> listEdt;
     TextView titleNote;
     Animation fabOpen, fabClose, rotateForward, rotateBackward;
     boolean isOpen = false;
+    private static int REQUEST_IMAGE_GALLERY = 100;
+    AlertDialog.Builder showPictureOptions;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,17 +78,18 @@ public class Note_Activity extends AppCompatActivity {
 
         fab_add = findViewById(R.id.fab_add);
         fab_text = findViewById(R.id.fab_text);
-        fab_adio = findViewById(R.id.fab_audio);
-        fab_img = findViewById(R.id.fab_image);
+        fab_audio = findViewById(R.id.fab_audio);
+        fab_img = findViewById(R.id.fab_img);
+
         fab_add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 handleAnimation();
             }
         });
-        if (Build.VERSION.SDK_INT< Build.VERSION_CODES.LOLLIPOP){
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             fab_text.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.celeste)));
-            fab_adio.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.naranja)));
+            fab_audio.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.naranja)));
             fab_img.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.bground)));
         }
 
@@ -80,38 +101,126 @@ public class Note_Activity extends AppCompatActivity {
                 LinearLayout container = constraintLayout.findViewById(R.id.container);
 
                 EditText editText = new EditText(getApplicationContext());
+                editText.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
                 editText.setBackground(null);
                 editText.setLayoutParams(new LinearLayout.LayoutParams(
                         LinearLayout.LayoutParams.MATCH_PARENT,
                         LinearLayout.LayoutParams.WRAP_CONTENT));
-                editText.setPadding(35, 35, 35, 35);
-                editText.requestFocus();
+                editText.setPadding(35, 30, 35, 30);
 
                 listEdt.add(editText);
                 container.addView(editText);
                 linearLayout.addView(constraintLayout);
+                editText.requestFocus();
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+                fab_audio.startAnimation(fabClose);
+                fab_img.startAnimation(fabClose);
+                fab_text.startAnimation(fabClose);
+                isOpen = false;
+            }
+        });
+        fab_img.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View customDialog = LayoutInflater.from(getApplicationContext()).inflate(R.layout.picture_source, null);
+                showPictureOptions = new AlertDialog.Builder(Note_Activity.this);
+                showPictureOptions.setView(customDialog);
+                ImageView pick_gallery = customDialog.findViewById(R.id.pick_gallery);
+                ImageView pick_camera = customDialog.findViewById(R.id.pick_camera);
+                pick_gallery.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        requestPermissionGallery();
+                    }
+                });
+                pick_camera.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Util.showToast(getApplicationContext(), "Seleccionaste Camera");
+                    }
+                });
+                showPictureOptions.show();
+                fab_audio.startAnimation(fabClose);
+                fab_img.startAnimation(fabClose);
+                fab_text.startAnimation(fabClose);
+                isOpen = false;
             }
         });
 
     }
 
+    private void requestPermissionGallery() {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    REQUEST_IMAGE_GALLERY);
+        } else {
+            goGallery();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_IMAGE_GALLERY) {
+            if (grantResults.length > 0
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                goGallery();
+            }
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_IMAGE_GALLERY && resultCode == RESULT_OK) {
+            if (data.getData() != null) {
+                try {
+                    Uri imageUri = data.getData();
+                    InputStream imageStream = getContentResolver().openInputStream(imageUri);
+                    Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
+                    ImageView imageView = new ImageView(getApplicationContext());
+
+                    imageView.setLayoutParams(new LinearLayout.LayoutParams(
+                            LinearLayout.LayoutParams.MATCH_PARENT,
+                            LinearLayout.LayoutParams.WRAP_CONTENT));
+                    imageView.setPadding(35, 35, 35, 35);
+                    imageView.setImageBitmap(selectedImage);
+                    linearLayout.addView(imageView);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    private void goGallery() {
+        Intent pickPhotoIntent = new Intent(Intent.ACTION_PICK);
+        File pictureDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+        String pictuPath = pictureDir.getPath();
+        Uri data = Uri.parse(pictuPath);
+        pickPhotoIntent.setDataAndType(data, "image/*");
+        startActivityForResult(pickPhotoIntent, REQUEST_IMAGE_GALLERY);
+    }
+
     private void handleAnimation() {
         if (isOpen) {
             fab_add.startAnimation(rotateForward);
-            fab_adio.startAnimation(fabClose);
+            fab_audio.startAnimation(fabClose);
             fab_img.startAnimation(fabClose);
             fab_text.startAnimation(fabClose);
             fab_text.setClickable(false);
-            fab_adio.setClickable(false);
+            fab_audio.setClickable(false);
             fab_img.setClickable(false);
             isOpen = false;
         } else {
             fab_add.startAnimation(rotateBackward);
-            fab_adio.startAnimation(fabOpen);
+            fab_audio.startAnimation(fabOpen);
             fab_img.startAnimation(fabOpen);
             fab_text.startAnimation(fabOpen);
             fab_text.setClickable(true);
-            fab_adio.setClickable(true);
+            fab_audio.setClickable(true);
             fab_img.setClickable(true);
             isOpen = true;
         }
@@ -128,6 +237,9 @@ public class Note_Activity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.save:
+                if (listEdt.get(1).getText().toString().isEmpty()) {
+
+                }
                 insertNoteDB();
         }
         return true;
