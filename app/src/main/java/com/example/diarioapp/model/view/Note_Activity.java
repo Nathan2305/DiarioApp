@@ -41,21 +41,27 @@ import com.example.diarioapp.utils.Util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import static com.example.diarioapp.model.view.ActivityListNotes.FOLDER_PICTURE;
 
 public class Note_Activity extends AppCompatActivity {
     FloatingActionButton fab_add, fab_text, fab_audio, fab_img;
     LinearLayout linearLayout;
     ArrayList<EditText> listEdt;
+    ArrayList<Bitmap> listBitmap;
     TextView titleNote;
     Animation fabOpen, fabClose, rotateForward, rotateBackward;
     boolean isOpen = false;
     private static int REQUEST_IMAGE_GALLERY = 100;
     AlertDialog.Builder showPictureOptions;
+    private String title_get;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,13 +71,13 @@ public class Note_Activity extends AppCompatActivity {
         Intent intent = getIntent();
         linearLayout = findViewById(R.id.container_ll);
         listEdt = new ArrayList<>();
-
+        listBitmap = new ArrayList<>();
         fabOpen = AnimationUtils.loadAnimation(this, R.anim.fab_open);
         fabClose = AnimationUtils.loadAnimation(this, R.anim.fab_close);
         rotateForward = AnimationUtils.loadAnimation(this, R.anim.rotate_forward);
         rotateBackward = AnimationUtils.loadAnimation(this, R.anim.rotate_backward);
 
-        String title_get = intent.getExtras().getString("title_note");
+        title_get = intent.getExtras().getString("title_note");
         if (!title_get.isEmpty()) {
             titleNote.setText(title_get);
         }
@@ -153,8 +159,7 @@ public class Note_Activity extends AppCompatActivity {
     private void requestPermissionGallery() {
         if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_IMAGE_GALLERY);
         } else {
             goGallery();
@@ -166,7 +171,7 @@ public class Note_Activity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_IMAGE_GALLERY) {
             if (grantResults.length > 0
-                    && grantResults[0] == PackageManager.PERMISSION_GRANTED && grantResults[1] == PackageManager.PERMISSION_GRANTED) {
+                    && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 goGallery();
             }
         }
@@ -187,6 +192,7 @@ public class Note_Activity extends AppCompatActivity {
                             LinearLayout.LayoutParams.WRAP_CONTENT));
                     imageView.setPadding(35, 35, 35, 35);
                     imageView.setImageBitmap(selectedImage);
+                    listBitmap.add(selectedImage);
                     linearLayout.addView(imageView);
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
@@ -237,9 +243,6 @@ public class Note_Activity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.save:
-                if (listEdt.get(1).getText().toString().isEmpty()) {
-
-                }
                 insertNoteDB();
         }
         return true;
@@ -259,7 +262,7 @@ public class Note_Activity extends AppCompatActivity {
                 Note note = new Note();
                 note.setTitle(titleNote.getText().toString());
                 note.setDateTitlenote(formattedDate);
-                long resul = AppDataBase.getInstanceNoteBD(getApplicationContext()).getNoteDao().insertNote(note);
+                long resul = AppDataBase.getInstanceNoteBD(getApplicationContext()).getNoteDao().insertNote(note);  //inserta Nota
 
                 for (int k = 0; k < listEdt.size(); k++) {
                     EditText editText = listEdt.get(k);
@@ -272,10 +275,15 @@ public class Note_Activity extends AppCompatActivity {
                         insertParagraphDB(paragraph);
                     }
                 }
-                Intent i1 = new Intent(getApplicationContext(), ActivityListNotes.class);
-                i1.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                i1.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP); // <= USE THIS
-                startActivity(i1);
+
+                for (int j = 0; j < listBitmap.size(); j++) {
+                    saveImageToExternal(listBitmap.get(j));
+                }
+                Intent intent = new Intent(getApplicationContext(), ActivityListNotes.class);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+
             } catch (Exception e) {
                 System.out.println("Excepcion - Note " + e.getMessage() + " - " + e.getCause());
             }
@@ -286,6 +294,22 @@ public class Note_Activity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Toast.makeText(getApplicationContext(), "Se guardaron notas", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void saveImageToExternal(Bitmap bitmap) {
+        Date date = new Date();
+        DateFormat dateFormat = DateFormat.getDateTimeInstance();
+        String formattedDate = dateFormat.format(date);
+        String bitmapName = title_get + "_" + formattedDate+".jpg";
+        File fileBitmap = new File(FOLDER_PICTURE, bitmapName);
+        try {
+            FileOutputStream fileOutputStream = new FileOutputStream(fileBitmap);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
+            fileOutputStream.flush();
+            fileOutputStream.close();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
         }
     }
 

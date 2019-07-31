@@ -7,7 +7,6 @@ import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
 @Entity
-
 public class Paragraph {
     @PrimaryKey(autoGenerate = true)
     @NonNull
