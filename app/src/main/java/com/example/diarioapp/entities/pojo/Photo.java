@@ -5,6 +5,8 @@ import android.arch.persistence.room.Entity;
 import android.arch.persistence.room.PrimaryKey;
 import android.support.annotation.NonNull;
 
+import java.sql.Blob;
+
 @Entity
 public class Photo {
 
@@ -16,8 +18,19 @@ public class Photo {
     @ColumnInfo(name = "noteId")
     private long noteId;
 
-    @ColumnInfo(name = "photo_name")
-    private String photo_name;
+    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
+    private byte[] img;
+
+    @ColumnInfo(name = "path")
+    private String path;
+
+    public String getPath() {
+        return path;
+    }
+
+    public void setPath(String path) {
+        this.path = path;
+    }
 
     public long getPhoto_id() {
         return photo_id;
@@ -35,11 +48,11 @@ public class Photo {
         this.noteId = noteId;
     }
 
-    public String getPhoto_name() {
-        return photo_name;
+    public byte[] getImg() {
+        return img;
     }
 
-    public void setPhoto_name(String photo_name) {
-        this.photo_name = photo_name;
+    public void setImg(byte[] img) {
+        this.img = img;
     }
 }

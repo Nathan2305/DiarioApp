@@ -5,14 +5,15 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.ColorStateList;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -36,32 +37,32 @@ import android.widget.Toast;
 import com.example.diarioapp.R;
 import com.example.diarioapp.entities.pojo.Note;
 import com.example.diarioapp.entities.pojo.Paragraph;
+import com.example.diarioapp.entities.pojo.Photo;
 import com.example.diarioapp.model.db.AppDataBase;
 import com.example.diarioapp.utils.Util;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-
-import static com.example.diarioapp.model.view.ActivityListNotes.FOLDER_PICTURE;
 
 public class Note_Activity extends AppCompatActivity {
     FloatingActionButton fab_add, fab_text, fab_audio, fab_img;
     LinearLayout linearLayout;
     ArrayList<EditText> listEdt;
     ArrayList<Bitmap> listBitmap;
+    ArrayList<Photo> listPhoto;
     TextView titleNote;
     Animation fabOpen, fabClose, rotateForward, rotateBackward;
     boolean isOpen = false;
     private static int REQUEST_IMAGE_GALLERY = 100;
-    AlertDialog.Builder showPictureOptions;
     private String title_get;
+    private long noteId;
+    long resulNoteId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,12 +73,15 @@ public class Note_Activity extends AppCompatActivity {
         linearLayout = findViewById(R.id.container_ll);
         listEdt = new ArrayList<>();
         listBitmap = new ArrayList<>();
+        listPhoto = new ArrayList<>();
         fabOpen = AnimationUtils.loadAnimation(this, R.anim.fab_open);
         fabClose = AnimationUtils.loadAnimation(this, R.anim.fab_close);
         rotateForward = AnimationUtils.loadAnimation(this, R.anim.rotate_forward);
         rotateBackward = AnimationUtils.loadAnimation(this, R.anim.rotate_backward);
+        Bundle bundle=getIntent().getExtras();
+        title_get = bundle.getString("title_note");
+        noteId = bundle.getLong("noteId");
 
-        title_get = intent.getExtras().getString("title_note");
         if (!title_get.isEmpty()) {
             titleNote.setText(title_get);
         }
@@ -129,24 +133,7 @@ public class Note_Activity extends AppCompatActivity {
         fab_img.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                View customDialog = LayoutInflater.from(getApplicationContext()).inflate(R.layout.picture_source, null);
-                showPictureOptions = new AlertDialog.Builder(Note_Activity.this);
-                showPictureOptions.setView(customDialog);
-                ImageView pick_gallery = customDialog.findViewById(R.id.pick_gallery);
-                ImageView pick_camera = customDialog.findViewById(R.id.pick_camera);
-                pick_gallery.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        requestPermissionGallery();
-                    }
-                });
-                pick_camera.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Util.showToast(getApplicationContext(), "Seleccionaste Camera");
-                    }
-                });
-                showPictureOptions.show();
+                requestPermissionGallery();
                 fab_audio.startAnimation(fabClose);
                 fab_img.startAnimation(fabClose);
                 fab_text.startAnimation(fabClose);
@@ -157,7 +144,8 @@ public class Note_Activity extends AppCompatActivity {
     }
 
     private void requestPermissionGallery() {
-        if (ContextCompat.checkSelfPermission(getApplicationContext(), Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(getApplicationContext(),
+                Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_IMAGE_GALLERY);
@@ -180,25 +168,53 @@ public class Note_Activity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_GALLERY && resultCode == RESULT_OK) {
+            Uri imageUri = data.getData();
+            String x = getPath(imageUri);
             if (data.getData() != null) {
                 try {
-                    Uri imageUri = data.getData();
                     InputStream imageStream = getContentResolver().openInputStream(imageUri);
                     Bitmap selectedImage = BitmapFactory.decodeStream(imageStream);
                     ImageView imageView = new ImageView(getApplicationContext());
-
                     imageView.setLayoutParams(new LinearLayout.LayoutParams(
                             LinearLayout.LayoutParams.MATCH_PARENT,
                             LinearLayout.LayoutParams.WRAP_CONTENT));
                     imageView.setPadding(35, 35, 35, 35);
                     imageView.setImageBitmap(selectedImage);
-                    listBitmap.add(selectedImage);
                     linearLayout.addView(imageView);
+
+                    FileInputStream fileInputStream = new FileInputStream(x);
+                    try {
+                        byte[] imgbyte = new byte[fileInputStream.available()];
+                        fileInputStream.read(imgbyte);
+                        Photo photo = new Photo();
+                        photo.setPath(x);
+                        photo.setNoteId(resulNoteId);
+                        photo.setImg(imgbyte);
+                        listPhoto.add(photo);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
             }
         }
+    }
+
+    private String getPath(Uri imageUri) {
+        if (imageUri == null) {
+            return null;
+        }
+        String[] projection = {MediaStore.Images.Media.DATA};
+        Cursor cursor = managedQuery(imageUri, projection, null, null, null);
+        if (cursor != null) {
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        }
+        return imageUri.getPath();
     }
 
     private void goGallery() {
@@ -243,75 +259,32 @@ public class Note_Activity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.save:
-                insertNoteDB();
-        }
-        return true;
-    }
-
-    private void insertNoteDB() {
-        new TaskAddNote().execute();
-    }
-
-    private class TaskAddNote extends AsyncTask<Void, Void, Void> {
-        @Override
-        protected Void doInBackground(Void... voids) {
-            try {
-                Date date = new Date();
-                DateFormat dateFormat = DateFormat.getDateTimeInstance();
-                String formattedDate = dateFormat.format(date);
-                Note note = new Note();
-                note.setTitle(titleNote.getText().toString());
-                note.setDateTitlenote(formattedDate);
-                long resul = AppDataBase.getInstanceNoteBD(getApplicationContext()).getNoteDao().insertNote(note);  //inserta Nota
-
-                for (int k = 0; k < listEdt.size(); k++) {
-                    EditText editText = listEdt.get(k);
-                    String paragraphTxt = editText.getText().toString();
-                    if (!paragraphTxt.isEmpty()) {
-                        Paragraph paragraph = new Paragraph();
-                        paragraph.setText(paragraphTxt);
-                        paragraph.setPosition(k);
-                        paragraph.setNoteId(resul);
-                        insertParagraphDB(paragraph);
+                if (!listEdt.isEmpty()) {
+                    for (int k = 0; k < listEdt.size(); k++) {
+                        EditText editText = listEdt.get(k);
+                        String paragraphTxt = editText.getText().toString();
+                        if (!paragraphTxt.isEmpty()) {
+                            Paragraph paragraph = new Paragraph();
+                            paragraph.setText(paragraphTxt);
+                            paragraph.setPosition(k);
+                            paragraph.setNoteId(noteId);
+                            insertParagraphDB(paragraph);
+                        }
                     }
-                }
-
-                for (int j = 0; j < listBitmap.size(); j++) {
-                    saveImageToExternal(listBitmap.get(j));
                 }
                 Intent intent = new Intent(getApplicationContext(), ActivityListNotes.class);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
-
-            } catch (Exception e) {
-                System.out.println("Excepcion - Note " + e.getMessage() + " - " + e.getCause());
-            }
-            return null;
+                break;
         }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            Toast.makeText(getApplicationContext(), "Se guardaron notas", Toast.LENGTH_SHORT).show();
-        }
+        return true;
     }
 
-    private void saveImageToExternal(Bitmap bitmap) {
-        Date date = new Date();
-        DateFormat dateFormat = DateFormat.getDateTimeInstance();
-        String formattedDate = dateFormat.format(date);
-        String bitmapName = title_get + "_" + formattedDate+".jpg";
-        File fileBitmap = new File(FOLDER_PICTURE, bitmapName);
-        try {
-            FileOutputStream fileOutputStream = new FileOutputStream(fileBitmap);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fileOutputStream);
-            fileOutputStream.flush();
-            fileOutputStream.close();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
+    private void insertPhotoDB(Photo photo) {
+        new TaskAddPhoto().execute(photo);
     }
+
 
     private void insertParagraphDB(Paragraph paragraph) {
         new TaskAddParagraph().execute(paragraph);
@@ -332,6 +305,24 @@ public class Note_Activity extends AppCompatActivity {
         protected void onPostExecute(Void aVoid) {
             super.onPostExecute(aVoid);
             Toast.makeText(getApplicationContext(), "Se guardaron titulos con Notas", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private class TaskAddPhoto extends AsyncTask<Photo, Void, Void> {
+        @Override
+        protected Void doInBackground(Photo... photos) {
+            try {
+                AppDataBase.getInstancePhotoBD(getApplicationContext()).getPhotoDao().inserPhoto(photos);
+            } catch (Exception e) {
+                System.out.println("Excepcion Guardado Foto " + e.getMessage());
+            }
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+            Util.showToast(getApplicationContext(), "Se guardó la foto correctamente");
         }
     }
 }

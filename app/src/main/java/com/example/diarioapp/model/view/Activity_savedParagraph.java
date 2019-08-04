@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import com.example.diarioapp.R;
 import com.example.diarioapp.entities.pojo.Paragraph;
+import com.example.diarioapp.entities.pojo.Photo;
 import com.example.diarioapp.model.db.AppDataBase;
 import com.example.diarioapp.utils.CustomAdapterParagraph;
 
@@ -32,20 +33,40 @@ public class Activity_savedParagraph extends AppCompatActivity {
         long noteId = bundle.getLong("noteId");
         titleNote.setText(noteTitle);
         showParagraphs(noteId);
+        showPhotos(noteId);
 
+    }
+
+    private void showPhotos(long noteId) {
+        new TaskgetPaPhots().execute(noteId);
     }
 
     private void showParagraphs(long noteId) {
         new TaskgetParragraphs().execute(noteId);
     }
+    private class TaskgetPaPhots extends AsyncTask<Long,Void,Void>{
+
+        @Override
+        protected Void doInBackground(Long... noteId) {
+            List<Photo> list=AppDataBase.getInstancePhotoBD(getApplicationContext()).
+                    getPhotoDao().getListPhotoperNote(noteId[0]);
+            int s=list.size();
+            return null;
+        }
+
+        @Override
+        protected void onPostExecute(Void aVoid) {
+            super.onPostExecute(aVoid);
+        }
+    }
 
     private class TaskgetParragraphs extends AsyncTask<Long, Void, Void> {
 
         @Override
-        protected Void doInBackground(Long... voids) {
+        protected Void doInBackground(Long... noteId) {
             try {
                 List<Paragraph> list=AppDataBase.getInstanceParagraphBD(getApplicationContext()).
-                        getParagraphDao().getListParagraphPerNote(voids[0]);
+                        getParagraphDao().getListParagraphPerNote(noteId[0]);
                 layoutManager = new LinearLayoutManager(getApplicationContext());
                 adapter=new CustomAdapterParagraph(getApplicationContext(),list);
                 rec.setLayoutManager(layoutManager);
